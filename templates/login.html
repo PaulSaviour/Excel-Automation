@@ -1,0 +1,21 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Capital Projects Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}" />
+
+</head>
+<body>
+    <div class="login-card">
+        <h2>PSP</h2>
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" width="90" height="90">
+        <h2>Capital Projects</h2>
+        <form method="post">
+            <input type="email" name="email" placeholder="Enter your Walgreens email" required>
+            <button type="submit" class="custom-button">Login</button>
+        </form>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    </div>
+</body>
+</html>
