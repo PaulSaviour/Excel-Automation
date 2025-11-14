@@ -1,0 +1,41 @@
+body {
+
+
+    background-color: #666666;
+
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    padding-top: 50px;
+    margin: 0;
+}
+.login-card {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: auto;
+}
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+.custom-button {
+    display: block;
+    margin: 0 auto;
+    width: 25%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    background-color: black;
+    color: white;
+    border: none;
+}
+.custom-button:hover {
+    background-color: #333333;
+}
+.error { color: red; }
