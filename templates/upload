@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capital Projects</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}" />
+
+</head>
+
+
+<body>
+    <div class="action-box">
+        <h2>Capital Projects</h2>
+        <p> To automate the Capital Projects report of PSP by streamlining the manual steps of cleaning, formatting, and enriching the Invoice Pending Approval file.</p>
+
+        <!-- Added onsubmit event to show the loading message when the form is submitted -->
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('upload_and_run') }}" onsubmit="showLoadingMessage()"> <!-- Corrected URL endpoint -->
+            <p><strong>Upload input folder:</strong></p>
+<!--            <input_folders type="file" name="files" multiple required>-->
+            <input type="file" id="folderPicker" name="files" webkitdirectory directory multiple required>
+
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div style="margin-bottom: 15px;">
+                        {% for message in messages %}
+                            <p style="color: green; font-weight: bold;">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <button type="submit">Upload & Run Process</button>
+        </form>
+        <script>
+        function showProgressBar() {
+            document.getElementById('progressBarContainer').style.display = 'block';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressBar').innerText = 'Processing...';
+        }
+
+        function updateProgressBar(percent, text) {
+            const bar = document.getElementById('progressBar');
+            bar.style.width = percent + '%';
+            bar.innerText = text;
+        }
+
+        function hideProgressBar() {
+            document.getElementById('progressBarContainer').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                showProgressBar();
+
+                const input = document.getElementById('folderPicker');
+                if (!input.files.length) {
+                    alert('Please select a folder.');
+                    return;
+                }
+
+                const fd = new FormData();
+                for (const file of input.files) {
+                    fd.append('files', file, file.webkitRelativePath);
+                }
+
+                fetch('{{ url_for("upload_and_run") }}', { method: 'POST', body: fd })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'uploaded') {
+                            fetch('{{ url_for("start_processing") }}', { method: 'POST' });
+
+                            let progress = 10;
+                            const interval = setInterval(() => {
+                                progress = Math.min(progress + 10, 90);
+                                updateProgressBar(progress, 'Processing..Please..Wait');
+
+                                fetch('{{ url_for("check_status") }}')
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.complete === true) {
+                                            clearInterval(interval);
+                                            updateProgressBar(100, 'Completed!');
+                                            hideProgressBar();
+                                            document.getElementById('downloadBtn').style.display = 'inline-block';
+                                        } else if (data.complete === 'error') {
+                                            clearInterval(interval);
+                                            updateProgressBar(100, 'Error occurred.');
+                                        }
+                                    });
+                            }, 1000);
+                        } else {
+                            updateProgressBar(100, 'Upload failed.');
+                        }
+                    })
+                    .catch(err => {
+                        alert('Upload failed: ' + err);
+                        updateProgressBar(100, 'Failed.');
+                    });
+            });
+        });
+        </script>
+<!--        <div id="progressBarContainer" style="display:none; width: 100%; margin-top: 20px;">-->
+<!--            <div style="width: 100%; background-color: #ddd; border-radius: 8px;">-->
+<!--                <div id="progressBar" style="width: 0%; height: 30px; background-color: green; text-align: center; line-height: 30px; color: white; border-radius: 8px;">-->
+<!--                    Processing...Please wait.-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+        <div id="progressBarContainer" style="display:none; width: 100%; margin-top: 20px; text-align: center;">
+            <div style="width: 75%; margin: 0 auto; background-color: #ddd; border-radius: 8px;">
+                <div id="progressBar" style="width: 0%; height: 30px; background-color: green; text-align: center; line-height: 30px; color: white; border-radius: 8px;">
+                    Processing..
+                </div>
+            </div>
+        </div>
+
+
+        <a href="{{ url_for('download_file') }}" id="downloadBtn" class="download-button" style="display: none;">
+            Download All Output Files (ZIP)
+        </a>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Hidden loading message initially -->
+<!--    <div id="loadingMessage" class="loading-message" style="display: none;">-->
+<!--        The processing is in progress... Please wait.-->
+<!--    </div>-->
+
+    <script>
+        // Function to show the loading message when form is submitted
+        function showLoadingMessage() {
+            document.getElementById('loadingMessage').style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>
+
+
