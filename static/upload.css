@@ -1,0 +1,82 @@
+body {
+    background-color: rgba(40, 40, 40, 0.8); /* Set the background color of the body to black */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    margin: 0;
+    color: white;
+}
+
+.action-box {
+    background-color: #b9b9b9;
+    padding: 2rem 3rem;
+    border-radius: 16px;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+    max-width: 700px;
+    width: 100%;
+    margin-bottom: 30px;
+    text-align: center;
+    color: #000000;
+    font-weight: bold;
+}
+
+h2 {
+    color: #333;
+}
+
+p {
+    color: #444;
+}
+
+input[type="file"] {
+    margin: 1rem 0;
+    padding: 10px;
+    border: 2px dashed #000;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    width: 100%;
+}
+
+button {
+    background-color: black;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #333333;
+}
+
+.loading-message {
+    color: #000000;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.download-button {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 12px 20px;
+    background-color: black;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.download-button:hover {
+    background-color: #333333;
+}
+
+.error {
+    color: red;
+    margin-top: 10px;
+}
