@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capital Projects</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}" />
+</head>
+
+<body>
+    <div class="action-box">
+        <h2>Capital Projects</h2>
+        <p>
+            Automating the Capital Projects report of PSP by streamlining the manual steps of cleaning,
+            formatting, and enriching the Invoice Pending Approval file.
+        </p>
+
+        <form id="upload-form" method="post" enctype="multipart/form-data" action="{{ url_for('upload_and_run') }}">
+            <p><strong>Enter your Walgreens Email:</strong></p>
+            <input type="email" id="email" name="email" placeholder="your.name@walgreens.com" required style="width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc;" />
+            <br><br>
+
+            <p><strong>Upload input folder:</strong></p>
+            <input type="file" id="folderPicker" name="files" webkitdirectory directory multiple required />
+            <br><br>
+
+            <button type="submit">Upload & Run Process</button>
+        </form>
+
+        <div id="progressBarContainer" style="display:none; width: 100%; margin-top: 20px; text-align: center;">
+            <div style="width: 75%; margin: 0 auto; background-color: #ddd; border-radius: 8px;">
+                <div id="progressBar" style="width: 0%; height: 30px; background-color: green; text-align: center; line-height: 30px; color: white; border-radius: 8px;">
+                    Processing...
+                </div>
+            </div>
+        </div>
+
+        <a href="{{ url_for('download_file') }}" id="downloadBtn" class="download-button" style="display: none; margin-top: 20px;">
+            Download All Output Files (ZIP)
+        </a>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div style="margin-bottom: 15px;">
+                    {% for message in messages %}
+                        <p style="color: green; font-weight: bold;">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <script>
+        function showProgressBar() {
+            document.getElementById('progressBarContainer').style.display = 'block';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressBar').innerText = 'Processing...';
+        }
+
+        function updateProgressBar(percent, text) {
+            const bar = document.getElementById('progressBar');
+            bar.style.width = percent + '%';
+            bar.innerText = text;
+        }
+
+        function hideProgressBar() {
+            document.getElementById('progressBarContainer').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('upload-form');
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const emailInput = document.getElementById('email');
+                const email = emailInput.value.trim().toLowerCase();
+
+                if (!email || !email.endsWith('@walgreens.com')) {
+                    alert('Please enter a valid Walgreens email address.');
+                    return;
+                }
+
+                const folderInput = document.getElementById('folderPicker');
+                if (!folderInput.files.length) {
+                    alert('Please select a folder to upload.');
+                    return;
+                }
+
+                showProgressBar();
+
+                const fd = new FormData();
+                fd.append('email', email);
+                for (const file of folderInput.files) {
+                    fd.append('files', file, file.webkitRelativePath);
+                }
+
+                fetch('{{ url_for("upload_and_run") }}', {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'uploaded') {
+                        fetch('{{ url_for("start_processing") }}', { method: 'POST' });
+
+                        let progress = 10;
+                        const interval = setInterval(() => {
+                            progress = Math.min(progress + 10, 90);
+                            updateProgressBar(progress, 'Processing... Please wait');
+
+                            fetch('{{ url_for("check_status") }}')
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.complete === true) {
+                                        clearInterval(interval);
+                                        updateProgressBar(100, 'Completed!');
+                                        hideProgressBar();
+                                        document.getElementById('downloadBtn').style.display = 'inline-block';
+                                    } else if (data.complete === 'error') {
+                                        clearInterval(interval);
+                                        updateProgressBar(100, 'An error occurred.');
+                                        hideProgressBar();
+                                    }
+                                });
+                        }, 1000);
+                    } else if (data.error) {
+                        updateProgressBar(100, 'Upload failed: ' + data.error);
+                        alert('Upload failed: ' + data.error);
+                        hideProgressBar();
+                    } else {
+                        updateProgressBar(100, 'Upload failed.');
+                        alert('Upload failed.');
+                        hideProgressBar();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    updateProgressBar(100, 'Failed.');
+                    alert('Upload failed: ' + err);
+                    hideProgressBar();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
